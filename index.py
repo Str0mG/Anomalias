@@ -81,13 +81,6 @@ def normalize(root_csv, root_videos):
     for i in range(len(frameTrue)-1):
         delta.append(distE(frameTrue[i+1],frameTrue[i]))
 
-
-
-    
-
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
