@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow import keras
+from keras import Sequential
+from keras.layers import Dense
+
 
 def humanSort(text):  # Sort function for strings w/ numbers
     convText = lambda seq: int(seq) if seq.isdigit() else seq.lower()
@@ -55,7 +58,7 @@ def normalize(root_videos):
             frames_name = humanSort(os.listdir(path_frame_full))
             print(len(frames_name))
             frame_rgb = rgb(path_frame_full,frames_name) #lista de lista para vetores de cada frame [[1,2,3,4],[1,2,4,5]...]
-            frame_delta.append(distE(frame_rgb)) #lista de listas [[],[]]
+            frame_delta.append(distE(frame_rgb)) #lista de listas [[1,2,3,4],[],[],[]]
     
     return frame_delta
     
@@ -72,22 +75,36 @@ def csv2(root_csv):
 
 
 def rede_neural(dif,csv):
-    # transforma para csv
+   
+    df_train = pd.DataFrame(dif[0], dtype = float)
+    df_label = pd.DataFrame(csv[0], dtype = float)
 
-    df_train = pd.DataFrame(dif[0])
-    df_label = np.array(csv[0])
-    print(df_train.head())
-    print(len(df_label))
-    model = keras.Sequential([
-    keras.layers.Dense(128, activation='relu'),
-    keras.layers.Dense(10, activation='softmax')
-    ])
-
+    model = Sequential()
+    model.add(Dense(12, input_dim = 1, activation='relu'))
+    model.add(Dense(8, activation='relu'))
+    model.add(Dense(1, activation='sigmoid'))
     model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+                loss='binary_crossentropy',
+                metrics=['accuracy'])
+    
+    model.fit(df_train, df_label, epochs=150, batch_size=10, verbose=0)
+    predictions = (model.predict(df_train) > 0.20).astype(int)
+    df_label = np.array(csv[0])
+    for i in range(len(df_train)):
+        print(predictions[i], "expected ", df_label[i])
 
-    model.fit(df_train, df_label, epochs=1)
+    # print(df_train.head())
+    # print(len(df_label))
+    # model = keras.Sequential([
+    # keras.layers.Dense(128, activation='relu'),
+    # keras.layers.Dense(10, activation='softmax')
+    # ])
+
+    # model.compile(optimizer='adam',
+    #           loss='sparse_categorical_crossentropy',
+    #           metrics=['accuracy'])
+
+    # model.fit(df_train, df_label, epochs=1)
 
 
 
@@ -108,7 +125,7 @@ if __name__ == '__main__':
     
     dif = normalize(opt.root_frames) #[[123,123],[1231,1231]]
     
-    csv_list = csv2(opt.root_csv)    #[[0,1],[0,1]]
+    csv_list = csv2(opt.root_csv)    #[[0,1,2],[0,1],[],[]]
     
     # funcao so para checar se ta ok
     if not len(dif) == len(csv_list):

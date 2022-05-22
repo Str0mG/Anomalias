@@ -76,8 +76,3 @@ if __name__ == '__main__':
     
     # Como rodar
     # python3 convert.py --root_videos "path_to_videos"  --root_frames "path_frames"
-
-
-
-
-
