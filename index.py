@@ -4,7 +4,11 @@ import cv2
 import numpy as np
 import pandas as pd
 from scipy.spatial import distance
-
+import csv
+import numpy as np
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from tensorflow import keras
 
 def humanSort(text):  # Sort function for strings w/ numbers
     convText = lambda seq: int(seq) if seq.isdigit() else seq.lower()
@@ -19,12 +23,12 @@ def distE(frames:list):
     return dist
     
 
-def rgb(image:list)->list:
+def rgb(path,image)->list:
     rgb = []
 
     for i in range(len(image)):
-        image = cv2.imread(image[i])
-        gray = cv2.calcHist([image], [0], None, [256], [0, 256])
+        image2 = cv2.imread(os.path.join(path,image[i]))
+        gray = cv2.calcHist([image2], [0], None, [256], [0, 256])
         rgb.append(np.append([],gray).tolist())
         
     return rgb
@@ -47,36 +51,49 @@ def normalize(root_videos):
         # for entre videos
         for frame_file in humanSort(os.listdir(path_dir_full)):
             path_frame_full = os.path.join(path_dir_full,frame_file)
+            
             frames_name = humanSort(os.listdir(path_frame_full))
             print(len(frames_name))
-            frame_rgb = rgb(frames_name) #lista de lista para vetores de cada frame [[1,2,3,4],[1,2,4,5]...]
+            frame_rgb = rgb(path_frame_full,frames_name) #lista de lista para vetores de cada frame [[1,2,3,4],[1,2,4,5]...]
             frame_delta.append(distE(frame_rgb)) #lista de listas [[],[]]
     
     return frame_delta
     
 
-def csv(root_csv):
+def csv2(root_csv):
     frame_csv = []
 
     for csv_file in humanSort(os.listdir(root_csv)):
-        i+=1
-        print(humanSort(os.listdir(root_csv)))
         path_csv_full = os.path.join(root_csv,csv_file)
         framesAnotados = read_file(path_csv_full)
-        print(len(framesAnotados))
+        frame_csv.append(np.append([],framesAnotados).tolist())
 
-    frame_csv 
+    return frame_csv 
 
 
 def rede_neural(dif,csv):
     # transforma para csv
-    df = pd.DataFrame(dif,columns=['Diferenca'])
 
-    df.to_csv('Eae2.csv',index=False)
+    df_train = pd.DataFrame(dif[0])
+    df_label = np.array(csv[0])
+    print(df_train.head())
+    print(len(df_label))
+    model = keras.Sequential([
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(10, activation='softmax')
+    ])
+
+    model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+    model.fit(df_train, df_label, epochs=1)
+
+
 
 if __name__ == '__main__':
     # Como rodar
-    # python3 index.py --root_frames "path_frames"
+    # python3 index.py --root_frames "path_frames" --root_csv
 
     class TestFailed(Exception):
         pass
@@ -89,16 +106,19 @@ if __name__ == '__main__':
     parser.add_argument('--root_csv',    type=str, default='PATH_TO_CSV', help='Root path of your csv')
     opt = parser.parse_args()
     
-    dif = normalize(opt.root_videos) #[[123,123],[1231,1231]]
-    csv_list = csv(opt.root_csv)    #[[0,1],[0,1]]
+    dif = normalize(opt.root_frames) #[[123,123],[1231,1231]]
+    
+    csv_list = csv2(opt.root_csv)    #[[0,1],[0,1]]
+    
     # funcao so para checar se ta ok
     if not len(dif) == len(csv_list):
-        raise TestFailed('N esta igual')
+        raise TestFailed('N esta igual1')
 
     for i in range(len(dif)):
         if not len(dif[i]) == len(csv_list[i]):
-            raise TestFailed('N esta igual')
+            raise TestFailed('N esta igual2')
 
+    
     rede_neural(dif,csv_list)
 
 # To-do verificar rgb de um grayscale e fazer a media e verificar se é o msm se fosse só grayscale
