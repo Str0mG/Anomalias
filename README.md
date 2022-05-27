@@ -1,7 +1,3 @@
-# Anomalias
-
-
-
 <h4 align="center"> 
 	🚧  Algoritmo de movimento 🚀 Em construção...  🚧
 </h4>
