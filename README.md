@@ -2,7 +2,6 @@
 	🚧  Algoritmo de movimento 🚀 Em construção...  🚧
 </h4>
 
-
 # Analise de algoritmo de detecção de movimento
 
 Nesse projeto vamos construir uma rede neural que analisa se há uma anomalia ou não em um frame.
